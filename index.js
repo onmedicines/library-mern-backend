@@ -1,5 +1,6 @@
 // packages
 import express from "express";
+import cors from "cors";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -10,6 +11,8 @@ import Books from "./schemas/Books.js";
 const app = express();
 dotenv.config();
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cors());
 
 mongoose
   .connect(process.env.ATLAS_URI)
@@ -31,6 +34,10 @@ app
     const pages = req.body.pages;
 
     const dbResponse = await Books.create({ name: name, author: author, pages: pages });
-    console.log(dbResponse);
     res.send({ message: "book added to db" });
   });
+
+app.route("/all-books").get(async (req, res) => {
+  const dbResponse = await Books.find();
+  res.json(dbResponse);
+});

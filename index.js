@@ -29,7 +29,7 @@ app
     res.json({ message: "hello" });
   })
   .post(async (req, res) => {
-    const name = req.body.name;
+    const name = req.body.bookName;
     const author = req.body.author;
     const pages = req.body.pages;
 

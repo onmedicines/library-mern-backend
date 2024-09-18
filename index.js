@@ -29,12 +29,19 @@ app
     res.json({ message: "hello" });
   })
   .post(async (req, res) => {
-    const name = req.body.bookName;
-    const author = req.body.author;
-    const pages = req.body.pages;
+    try {
+      const name = req.body.bookName;
+      const author = req.body.author;
+      const pages = req.body.pages;
 
-    const dbResponse = await Books.create({ name: name, author: author, pages: pages });
-    res.send({ message: "book added to db" });
+      if (!name || !author || !pages) throw new Error("one or more fields missing");
+
+      const dbResponse = await Books.create({ name: name, author: author, pages: pages });
+      res.json({ message: "book added to db" });
+    } catch (err) {
+      console.error(err.message);
+      res.json({ message: err.message });
+    }
   });
 
 app.route("/all-books").get(async (req, res) => {

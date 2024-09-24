@@ -6,11 +6,11 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 // schemas
-import Books from "./schemas/Books.js";
+import User from "./schemas/User.js";
 
 const app = express();
 dotenv.config();
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -47,4 +47,22 @@ app
 app.route("/all-books").get(async (req, res) => {
   const dbResponse = await Books.find();
   res.json(dbResponse);
+});
+
+app.route("/signup").post(async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    /**
+     * if user already registered
+     * throw an error
+     */
+    const user = await User.findOne({ username });
+    if (user) throw new Error("User already Exists");
+
+    await User.create({ username, password });
+    res.json({ message: "user created" });
+  } catch (err) {
+    res.status(409).json({ error: err.message });
+  }
 });

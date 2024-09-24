@@ -4,6 +4,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 // schemas
 import User from "./schemas/User.js";
@@ -44,9 +45,11 @@ app
     }
   });
 
-app.route("/all-books").get(async (req, res) => {
-  const dbResponse = await Books.find();
-  res.json(dbResponse);
+app.route("/books").post(authorizeToken, async (req, res) => {
+  const username = req.username;
+  const user = await User.findOne({ username });
+
+  res.json(user.books);
 });
 
 app.route("/signup").post(async (req, res) => {
@@ -66,3 +69,36 @@ app.route("/signup").post(async (req, res) => {
     res.status(409).json({ error: err.message });
   }
 });
+
+app.route("/signin").post(async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) throw new Error("username does not exist!!");
+    if (user.password !== password) throw new Error("Password Incorrect!");
+
+    // username and password are valid beyound this point
+    // we can generate a jwt
+    const accessToken = jwt.sign({ username }, process.env.ACCESS_TOKEN_SECRET);
+
+    res.json({ message: "user logged in!!", books: user.books, accessToken });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
+function authorizeToken(req, res, next) {
+  try {
+    const authHeader = req.headers["authorization"]; // format: BEARER <token>
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token) throw new Error("cannot be authorized!!");
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+      if (err) throw err;
+      req.username = user.username;
+      next();
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+}

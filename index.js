@@ -21,35 +21,11 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.listen(process.env.PORT, () => {
-  console.log(`serever started on port ${process.env.PORT}`);
+  console.log(`server started on port ${process.env.PORT} 🎉`);
 });
 
-app
-  .route("/")
-  .get((req, res) => {
-    res.json({ message: "hello" });
-  })
-  .post(async (req, res) => {
-    try {
-      const name = req.body.bookName;
-      const author = req.body.author;
-      const pages = req.body.pages;
-
-      if (!name || !author || !pages) throw new Error("one or more fields missing");
-
-      const dbResponse = await Books.create({ name: name, author: author, pages: pages });
-      res.json({ message: "book added to db" });
-    } catch (err) {
-      console.error(err.message);
-      res.json({ message: err.message });
-    }
-  });
-
-app.route("/books").post(authorizeToken, async (req, res) => {
-  const username = req.username;
-  const user = await User.findOne({ username });
-
-  res.json(user.books);
+app.route("/").get((req, res) => {
+  res.json({ message: "hello" });
 });
 
 app.route("/signup").post(async (req, res) => {
@@ -102,3 +78,26 @@ function authorizeToken(req, res, next) {
     res.json({ error: err.message });
   }
 }
+
+app.route("/add-book").post(async (req, res) => {
+  try {
+    const name = req.body.bookName;
+    const author = req.body.author;
+    const pages = req.body.pages;
+
+    if (!name || !author || !pages) throw new Error("one or more fields missing");
+
+    const dbResponse = await Books.create({ name: name, author: author, pages: pages });
+    res.json({ message: "book added to db" });
+  } catch (err) {
+    console.error(err.message);
+    res.json({ message: err.message });
+  }
+});
+
+app.route("/books").post(authorizeToken, async (req, res) => {
+  const username = req.username;
+  const user = await User.findOne({ username });
+
+  res.json(user.books);
+});

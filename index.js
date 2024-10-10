@@ -20,7 +20,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.listen(process.env.PORT, () => {
-  console.log(`serever started on port ${process.env.PORT}`);
+  console.log(`server started on port ${process.env.PORT}`);
 });
 
 app
@@ -30,13 +30,17 @@ app
   })
   .post(async (req, res) => {
     try {
-      const name = req.body.bookName;
-      const author = req.body.author;
-      const pages = req.body.pages;
+      const { bookName, authorName, numberOfPages, summary, rating } = req.body;
 
-      if (!name || !author || !pages) throw new Error("one or more fields missing");
+      if (!bookName || !authorName || !numberOfPages || !rating) throw new Error("book name, author name, number of pages and rating are required fields");
 
-      const dbResponse = await Books.create({ name: name, author: author, pages: pages });
+      const dbResponse = await Books.create({
+        bookName,
+        authorName,
+        numberOfPages,
+        summary,
+        rating,
+      });
       res.json({ message: "book added to db" });
     } catch (err) {
       console.error(err.message);
@@ -46,5 +50,6 @@ app
 
 app.route("/all-books").get(async (req, res) => {
   const dbResponse = await Books.find();
+  console.log(dbResponse); // logs
   res.json(dbResponse);
 });

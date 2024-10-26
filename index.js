@@ -10,6 +10,8 @@ import jwt from "jsonwebtoken";
 import User from "./schemas/User.js";
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 dotenv.config();
 // app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -87,23 +89,27 @@ app.route("/signin").post(async (req, res) => {
 
 app.route("/user").post(authenticate, async (req, res) => {
   try {
-    const name = req.body.bookName;
-    const author = req.body.author;
-    const pages = req.body.pages;
+    const bookName = req.body.bookName;
+    const authorName = req.body.authorName;
+    const pages = req.body.pages || null;
+    const summary = req.body.summary || "";
+    const rating = req.body.rating;
 
-    if (!name || !author || !pages) throw new Error("one or more fields missing");
+    if (!bookName || !authorName || !rating) throw new Error("one or more fields missing");
 
-    const dbResponse = await User.findOneAndUpdate({ username: req.username }, { $push: { books: { name: name, author: author, pages: pages } } }, { new: true });
-    res.json({ message: "book added to db" });
+    await User.findOneAndUpdate({ username: req.username }, { $push: { books: { bookName, authorName, pages, summary, rating } } });
+    res.status(200).json({ message: "book added to db" });
   } catch (err) {
     console.error(err.message);
-    res.json({ errorUser: err.message });
+    res.status(400).json({ errorUser: err.message });
   }
 });
 
 app.route("/books").post(authenticate, async (req, res) => {
-  const username = req.username;
-  const user = await User.findOne({ username });
-
-  res.json(user.books);
+  try {
+    const user = await User.findOne({ username: req.username });
+    res.status(200).json(user.books);
+  } catch (error) {
+    res.status(500).json({ errorBooks: error.message });
+  }
 });

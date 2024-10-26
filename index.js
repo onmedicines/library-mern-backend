@@ -62,7 +62,7 @@ app.route("/signup").post(async (req, res) => {
 
     user = await User.create({ username, password });
     jwt.sign({ username }, process.env.SECRET_KEY, (err, token) => {
-      res.status(200).json({ message: "user created", user, token });
+      res.status(200).json({ message: "user created", token });
     });
   } catch (err) {
     res.status(409).json({ errorSignup: err.message });
@@ -80,7 +80,7 @@ app.route("/signin").post(async (req, res) => {
     // username and password are valid beyound this point
     // we can generate a jwt
     jwt.sign({ username }, process.env.SECRET_KEY, (err, token) => {
-      res.status(200).json({ message: "user logged in!!", user, token });
+      res.status(200).json({ message: "user logged in!!", token });
     });
   } catch (err) {
     res.json({ errorSignin: err.message });
